@@ -33,14 +33,14 @@ def client():
 class TestGetMemos:
     """GET /api/memos のテスト"""
 
-    def test_メモ一覧を取得できる(self, client):
+    def test_get_all_memos(self, client):
         response = client.get("/api/memos")
         assert response.status_code == 200
         data = response.get_json()
         assert isinstance(data, list)
         assert len(data) >= 1
 
-    def test_メモにtitleとcontentが含まれる(self, client):
+    def test_memo_has_title_and_content(self, client):
         response = client.get("/api/memos")
         data = response.get_json()
         memo = data[0]
@@ -51,13 +51,13 @@ class TestGetMemos:
 class TestGetMemo:
     """GET /api/memos/<id> のテスト"""
 
-    def test_存在するメモを取得できる(self, client):
+    def test_get_existing_memo(self, client):
         response = client.get("/api/memos/1")
         assert response.status_code == 200
         data = response.get_json()
         assert data["id"] == 1
 
-    def test_存在しないメモで404が返る(self, client):
+    def test_get_nonexistent_memo_returns_404(self, client):
         response = client.get("/api/memos/9999")
         assert response.status_code == 404
 
@@ -65,7 +65,7 @@ class TestGetMemo:
 class TestCreateMemo:
     """POST /api/memos のテスト"""
 
-    def test_新しいメモを作成できる(self, client):
+    def test_create_new_memo(self, client):
         response = client.post(
             "/api/memos",
             json={"title": "テストメモ", "content": "テスト内容"},
@@ -74,14 +74,14 @@ class TestCreateMemo:
         data = response.get_json()
         assert data["title"] == "テストメモ"
 
-    def test_titleなしで400が返る(self, client):
+    def test_create_memo_without_title_returns_400(self, client):
         response = client.post(
             "/api/memos",
             json={"content": "内容のみ"},
         )
         assert response.status_code == 400
 
-    def test_メモにcategoryが含まれる(self, client):
+    def test_create_memo_with_category(self, client):
         """カテゴリ付きでメモを作成できることを確認する。"""
         response = client.post(
             "/api/memos",
@@ -99,10 +99,10 @@ class TestCreateMemo:
 class TestDeleteMemo:
     """DELETE /api/memos/<id> のテスト"""
 
-    def test_メモを削除できる(self, client):
+    def test_delete_memo(self, client):
         response = client.delete("/api/memos/1")
         assert response.status_code == 200
 
-    def test_存在しないメモの削除で404が返る(self, client):
+    def test_delete_nonexistent_memo_returns_404(self, client):
         response = client.delete("/api/memos/9999")
         assert response.status_code == 404
