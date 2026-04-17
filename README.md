@@ -1,4 +1,4 @@
-# bob-handson-starter
+# bob-hands-on
 
 Python（Flask）製の簡易メモ管理Webアプリです。
 
