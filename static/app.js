@@ -11,35 +11,72 @@ async function loadMemos() {
     }
 }
 
+// 許可するカテゴリ（クラス名インジェクション防止のためのホワイトリスト）
+const ALLOWED_CATEGORIES = ["仕事", "個人", "その他"];
+
 // メモ一覧を描画
 function renderMemos(memos) {
     const container = document.getElementById("memos");
     const countEl = document.getElementById("memo-count");
     countEl.textContent = "(" + memos.length + "件)";
 
+    container.replaceChildren();
+
     if (memos.length === 0) {
-        container.innerHTML = '<div class="empty-message">メモがありません</div>';
+        const empty = document.createElement("div");
+        empty.className = "empty-message";
+        empty.textContent = "メモがありません";
+        container.append(empty);
         return;
     }
 
-    container.innerHTML = memos.map(function (memo) {
-        const categoryHtml = memo.category
-            ? '<span class="memo-category category-' + escapeHtml(memo.category) + '">' + escapeHtml(memo.category) + "</span>"
-            : "";
+    memos.forEach(function (memo) {
+        container.append(createMemoCard(memo));
+    });
+}
 
-        return (
-            '<div class="memo-card">' +
-            '  <div class="memo-body">' +
-            '    <div class="memo-title">' + escapeHtml(memo.title) + categoryHtml + "</div>" +
-            '    <div class="memo-content">' + escapeHtml(memo.content) + "</div>" +
-            '    <div class="memo-meta">ID: ' + memo.id + "</div>" +
-            "  </div>" +
-            '  <div class="memo-actions">' +
-            '    <button class="btn btn-danger" onclick="deleteMemo(' + memo.id + ')">削除</button>' +
-            "  </div>" +
-            "</div>"
-        );
-    }).join("");
+// メモカードを生成
+function createMemoCard(memo) {
+    const card = document.createElement("div");
+    card.className = "memo-card";
+
+    const body = document.createElement("div");
+    body.className = "memo-body";
+
+    const title = document.createElement("div");
+    title.className = "memo-title";
+    title.textContent = memo.title;
+
+    if (memo.category && ALLOWED_CATEGORIES.includes(memo.category)) {
+        const cat = document.createElement("span");
+        cat.className = "memo-category category-" + memo.category;
+        cat.textContent = memo.category;
+        title.append(cat);
+    }
+
+    const content = document.createElement("div");
+    content.className = "memo-content";
+    content.textContent = memo.content;
+
+    const meta = document.createElement("div");
+    meta.className = "memo-meta";
+    meta.textContent = "ID: " + memo.id;
+
+    body.append(title, content, meta);
+
+    const actions = document.createElement("div");
+    actions.className = "memo-actions";
+
+    const delBtn = document.createElement("button");
+    delBtn.className = "btn btn-danger";
+    delBtn.textContent = "削除";
+    delBtn.addEventListener("click", function () {
+        deleteMemo(memo.id);
+    });
+    actions.append(delBtn);
+
+    card.append(body, actions);
+    return card;
 }
 
 // メモを新規作成
@@ -107,13 +144,6 @@ function showMessage(text, type) {
     setTimeout(function () {
         el.style.display = "none";
     }, 4000);
-}
-
-// HTMLエスケープ
-function escapeHtml(text) {
-    const div = document.createElement("div");
-    div.textContent = text;
-    return div.innerHTML;
 }
 
 // イベント登録・初期読み込み

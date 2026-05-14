@@ -1,5 +1,5 @@
 from flask import Blueprint, jsonify, request
-from db import memos
+import db
 from models.memo import create_memo, validate_memo
 
 memos_bp = Blueprint("memos", __name__)
@@ -8,17 +8,20 @@ memos_bp = Blueprint("memos", __name__)
 @memos_bp.route("/api/memos", methods=["GET"])
 def get_memos():
     """メモの一覧を取得する。"""
-    return jsonify(memos)
+    return jsonify(db.memos)
+
+
+@memos_bp.route("/api/memos/stats", methods=["GET"])
+def memo_stats():
+    """メモの統計情報を取得する。"""
+    stats = get_memo_stats(db.memos)
+    return jsonify(stats)
 
 
 @memos_bp.route("/api/memos/<int:memo_id>", methods=["GET"])
 def get_memo(memo_id):
     """指定されたIDのメモを取得する。"""
-    memo = None
-    for m in memos:
-        if m["id"] == memo_id:
-            memo = m
-            break
+    memo = next((m for m in db.memos if m["id"] == memo_id), None)
     if memo is None:
         return jsonify({"error": "メモが見つかりません"}), 404
     return jsonify(memo)
@@ -36,13 +39,6 @@ def create_memo_route():
 
 
 # TODO: DELETE /api/memos/<id> を実装する
-
-
-@memos_bp.route("/api/memos/stats", methods=["GET"])
-def memo_stats():
-    """メモの統計情報を取得する。"""
-    stats = get_memo_stats(memos)
-    return jsonify(stats)
 
 
 def get_memo_stats(memo_list):
